@@ -4,22 +4,41 @@ NCチームで使用する開発環境のテンプレートです．
 
 ## セットアップ
 
-### 1. ブランチ保護ルールの設定
+### 1. ブランチ保護ルールの設定（Rulesets）
 
 `main` ブランチへの直接プッシュを禁止し，プルリクエスト経由のマージを強制します．
+GitHub の新しい **Rulesets** を使用して設定します．
 
-1. GitHub リポジトリの **Settings** > **Branches** を開く
-2. **Add branch protection rule** をクリック
-3. **Branch name pattern** に `main` / `master` を入力
-4. 以下の項目を有効化し，**Save changes** をクリックする
+#### 設定手順
 
-| 設定項目 | 推奨値 | 説明 |
-| --- | --- | --- |
-| Require a pull request before merging | ✓ | マージ前に PR を必須にする |
-| Require approvals | 1 以上 | 承認者の最低人数 |
-| Require status checks to pass | ✓ | CI が通過しないとマージ不可 |
-| Require branches to be up to date | ✓ | マージ前にベースブランチとの同期を必須にする |
-| Include administrators | ✓ | 管理者にもルールを適用する |
+1. GitHub リポジトリの **Settings** > **Rules** > **Rulesets** を開く
+2. **New ruleset** > **New branch ruleset** をクリック
+3. 以下を設定して **Save changes** をクリックする
+
+#### Ruleset 設定内容
+
+| 項目 | 値 |
+| --- | --- |
+| Ruleset name | `pullreq`（任意） |
+| Enforcement status | Active |
+| Target branches | Default branch（`main`） |
+
+#### Bypass list
+
+| ロール | 許可内容 |
+| --- | --- |
+| Organization admin | Allow for pull requests only |
+| Repository admin | Always allow |
+
+#### 有効にするルール
+
+| ルール | 説明 |
+| --- | --- |
+| Restrict deletions | ブランチの誤削除を防ぐ |
+| Require a pull request before merging | マージ前に PR を必須にする |
+| Require status checks to pass | CI テストが通過しないとマージ不可 |
+| Block force pushes | 履歴の強制書き換えを禁止する |
+| Automatically request Copilot code review | PR 作成時に Copilot によるコードレビューを自動リクエストする |
 
 ---
 
@@ -50,15 +69,28 @@ GitHub Issues をチケットとして使用し，1 チケット 1 ブランチ�
 
 #### ブランチ運用フロー
 
+```text
+main
+ └─ dev
+     └─ feat/*** ─── 作業 ─── PR ──→ dev ─── PR ──→ main
 ```
-dev
- └─ feat/*** ─── 作業 ─── PR ──→ dev
-```
+
+##### feat/\*\*\* → dev（日常の開発）
 
 1. GitHub Issues で `[FEAT]` チケットを作成する
 2. `dev` ブランチから `feat/***` ブランチを切る（ブランチ名はチケットに記載）
 3. `feat/***` ブランチで作業を行う
 4. 作業完了後，`feat/***` から `dev` へ PR を作成してマージする
+
+##### dev → main（リリース）
+
+`dev` から `main` へマージするには，以下の条件をすべて満たす必要があります．
+
+| 条件 | 状態 |
+| --- | --- |
+| CI テストが全て通過していること | 必須 |
+| CD によるステージング環境へのデプロイが成功していること | 予定 |
+| 開発者がログ・メトリクス・トレースの取得を確認していること | 予定 |
 
 #### RACI
 
